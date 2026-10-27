@@ -1,0 +1,59 @@
+{
+  "name": "demogen",
+  "version": "1.0.0",
+  "description": "Self-regenerating product demo videos: Playwright walks your live app, every frame is branded and redacted, narration is voiced, ffmpeg stitches the MP4. One command, always up to date.",
+  "keywords": [
+    "demo",
+    "video",
+    "walkthrough",
+    "playwright",
+    "screen-recording",
+    "product-tour",
+    "documentation",
+    "tts",
+    "ffmpeg"
+  ],
+  "homepage": "https://github.com/360solutions-dev/demogen#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/360solutions-dev/demogen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/360solutions-dev/demogen/issues"
+  },
+  "license": "MIT",
+  "author": "360 Solutions",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "templates",
+    "scripts",
+    "docs",
+    "README.md",
+    "CLAUDE.md"
+  ],
+  "bin": {
+    "demogen-init": "./scripts/init.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "peerDependencies": {
+    "@playwright/test": ">=1.40.0"
+  },
+  "dependencies": {
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}
