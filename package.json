@@ -1,6 +1,6 @@
 {
   "name": "demowalk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Self-regenerating product demo videos: Playwright walks your live app, every frame is branded and redacted, narration is voiced, ffmpeg stitches the MP4. One command, always up to date.",
   "keywords": [
     "demo",
