@@ -63,7 +63,7 @@ The engine, starter templates and setup CLI live in this package; journeys
 
 | Required | Why |
 |---|---|
-| Node 18+ and `tsx` | runs the pipeline |
+| Node 18+ | runs the pipeline (demowalk ships its own `tsx` runner) |
 | `@playwright/test` + Chromium | the capture engine (peer dependency) |
 | ffmpeg on the machine | narration conversion + stitching |
 | **macOS** (for now) | narration uses the built-in `say`; download a natural voice once via System Settings → Accessibility → Spoken Content → Manage Voices (e.g. "Tom (Enhanced)") |
@@ -82,7 +82,6 @@ brew install ffmpeg
 #     "ffmpeg without Homebrew" at the end of this README)
 
 # 1. in your app's repo:
-npm install --save-dev tsx
 npm install --save-dev demowalk
 #    (straight from GitHub instead: npm i -D demowalk@github:360solutions-dev/demowalk
 #     from a local clone: npm i -D --install-links file:../demowalk

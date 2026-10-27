@@ -39,8 +39,9 @@ pkg.scripts["demo:update"] = spec.startsWith("file:")
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 console.log("✓ scripts: demo:video, demo:update");
 
-if (!pkg.devDependencies?.tsx && !pkg.dependencies?.tsx) {
-  console.log("⚠ tsx is not installed — run: npm install --save-dev tsx");
+// tsx ships as a demowalk dependency, so its bin is normally already linked.
+if (!fs.existsSync(path.join(hostRoot, "node_modules", ".bin", "tsx"))) {
+  console.log("⚠ tsx bin not found — run `npm install` (it comes with demowalk)");
 }
 
 // 1.5 AUTO-WIRE demo.config.ts when the host follows the common e2e
