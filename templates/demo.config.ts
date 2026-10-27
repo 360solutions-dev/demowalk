@@ -1,4 +1,4 @@
-import type { DemoConfig } from "demogen";
+import type { DemoConfig } from "demowalk";
 
 // ⬇️ Wire YOUR portal's own e2e auth here (every host has one for its tests).
 // ⚠️ Import ORDER matters: if your global setup loads env on import and the

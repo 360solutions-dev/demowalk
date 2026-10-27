@@ -1,4 +1,4 @@
-# demogen
+# demowalk
 
 **Self-regenerating product demo videos.** One command rebuilds a narrated
 walkthrough **from your live app**: Playwright drives the real UI, every
@@ -24,7 +24,7 @@ npm run demo:video              # → demo/out/example/example.mp4
 
 ## How it works
 
-Your repo keeps two inputs; demogen turns them into a video in four stages:
+Your repo keeps two inputs; demowalk turns them into a video in four stages:
 
 ```
    demo/journeys/<id>.ts                demo/demo.config.ts
@@ -85,16 +85,17 @@ curl -L "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip" -o /tmp/ffmpeg.zip \
 
 # 1. in your app's repo:
 npm install --save-dev tsx
-npm install --save-dev demogen@github:360solutions-dev/demogen
-#    (from a local clone instead: npm i -D --install-links file:../demogen
+npm install --save-dev demowalk
+#    (straight from GitHub instead: npm i -D demowalk@github:360solutions-dev/demowalk
+#     from a local clone: npm i -D --install-links file:../demowalk
 #     --install-links matters — a symlinked file: install duplicates
 #     Playwright's types and breaks tsc)
 
 # 2. only if the repo doesn't already use Playwright:
 npm install --save-dev @playwright/test && npx playwright install chromium
 
-# 3. let demogen set itself up (scripts + templates + gitignore, idempotent):
-npx demogen-init
+# 3. let demowalk set itself up (scripts + templates + gitignore, idempotent):
+npx demowalk-init
 
 # 4. review demo/demo.config.ts — init AUTO-WIRES it when the repo has the
 #    common e2e convention (tests/global-setup.ts + tests/fixtures/
@@ -139,7 +140,7 @@ narration as text — review the script without watching the video.
 
 ## Configuration
 
-demogen has **no .env of its own**: real configuration lives in
+demowalk has **no .env of its own**: real configuration lives in
 `demo/demo.config.ts` (typed, committed). Env vars are per-run overrides only:
 
 | Variable | Meaning | Default |
@@ -149,7 +150,7 @@ demogen has **no .env of its own**: real configuration lives in
 | `DEMO_VOICE_RATE` | Words per minute | from config / 165 |
 | `DEMO_ALLOW_REMOTE` | `1` permits a non-localhost base URL (explicit opt-in) | off |
 
-**Auth env belongs to the host, not to demogen** — the pipeline signs in
+**Auth env belongs to the host, not to demowalk** — the pipeline signs in
 through your repo's own e2e fixture, so whatever your e2e suite needs is all
 it needs. If `npm run e2e` works on a machine, `npm run demo:video` has
 everything besides ffmpeg and the running local app.
@@ -157,7 +158,7 @@ everything besides ffmpeg and the running local app.
 Branding is per project — each config passes its own theme's values:
 
 ```ts
-import type { DemoConfig } from "demogen";
+import type { DemoConfig } from "demowalk";
 import globalSetup from "../tests/global-setup";
 import { createAuthContext } from "../tests/fixtures/auth.fixture";
 
@@ -191,7 +192,7 @@ The full frame-styling contract lives in
 
 ## Updating
 
-In a host repo: `npm run demo:update` (set up by `demogen-init`). Journeys
+In a host repo: `npm run demo:update` (set up by `demowalk-init`). Journeys
 and config stay untouched; only the engine updates.
 
 ## Contributing
@@ -200,8 +201,8 @@ PRs welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, code
 layout, style and the PR workflow.
 
 ```bash
-git clone https://github.com/360solutions-dev/demogen.git
-cd demogen && npm install && npm run typecheck   # no build step
+git clone https://github.com/360solutions-dev/demowalk.git
+cd demowalk && npm install && npm run typecheck   # no build step
 ```
 
 ## License

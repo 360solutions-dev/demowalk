@@ -1,4 +1,4 @@
-import { run } from "demogen";
+import { run } from "demowalk";
 
 import config from "./demo.config";
 

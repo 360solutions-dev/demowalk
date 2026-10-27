@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * One-command host setup: `npx demogen-init` (run from the host repo root
+ * One-command host setup: `npx demowalk-init` (run from the host repo root
  * after installing the kit). Idempotent — safe to run again any time.
  *
  *   1. adds the demo:video / demo:update scripts to the host package.json
@@ -20,7 +20,7 @@ const hostRoot = process.cwd();
 
 const pkgPath = path.join(hostRoot, "package.json");
 if (!fs.existsSync(pkgPath)) {
-  console.error("[demogen-init] run this from the host repo root (no package.json here).");
+  console.error("[demowalk-init] run this from the host repo root (no package.json here).");
   process.exit(1);
 }
 
@@ -28,14 +28,14 @@ if (!fs.existsSync(pkgPath)) {
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
 pkg.scripts = pkg.scripts ?? {};
 pkg.scripts["demo:video"] = "tsx demo/run.ts";
-// demo:update matches HOW this host installed demogen: a local folder install
+// demo:update matches HOW this host installed demowalk: a local folder install
 // keeps the forced --install-links copy; a registry/GitHub install just
 // reinstalls the spec. (The rm -rf is what defeats npm's "up to date" cache.)
 const spec =
-  pkg.devDependencies?.demogen ?? pkg.dependencies?.demogen ?? "file:../demogen";
+  pkg.devDependencies?.demowalk ?? pkg.dependencies?.demowalk ?? "file:../demowalk";
 pkg.scripts["demo:update"] = spec.startsWith("file:")
-  ? `rm -rf node_modules/demogen && npm install --save-dev --install-links ${spec}`
-  : "rm -rf node_modules/demogen && npm install";
+  ? `rm -rf node_modules/demowalk && npm install --save-dev --install-links ${spec}`
+  : "rm -rf node_modules/demowalk && npm install";
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 console.log("✓ scripts: demo:video, demo:update");
 
@@ -67,7 +67,7 @@ function detectConfig() {
   const primary = /primary:\s*['"](#[0-9a-fA-F]{6})/.exec(theme)?.[1];
   const secondary = /secondary:\s*['"](#[0-9a-fA-F]{6})/.exec(theme)?.[1];
 
-  return `import type { DemoConfig } from "demogen";
+  return `import type { DemoConfig } from "demowalk";
 
 // ⚠️ Import ORDER matters: the global setup loads the e2e env on import,
 // and the auth fixture reads that env at ITS import — setup must come first.
@@ -75,7 +75,7 @@ import globalSetup from "../tests/global-setup";
 import { createAuthContext } from "../tests/fixtures/auth.fixture";
 
 /**
- * AUTO-WIRED by demogen-init from this repo's own conventions
+ * AUTO-WIRED by demowalk-init from this repo's own conventions
  * (e2e fixture, dev port, theme colours). Review the values once; adjust
  * anything the detection got wrong.
  */

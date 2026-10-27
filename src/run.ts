@@ -16,7 +16,7 @@ const execFileAsync = promisify(execFile);
  *
  * Host usage (each portal keeps a 3-line shim, see README):
  *
- *   import { run } from "demogen";
+ *   import { run } from "demowalk";
  *   import config from "./demo.config";
  *   run(config, (id) => import(`./journeys/${id}`));
  *

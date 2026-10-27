@@ -1,4 +1,4 @@
-import type { Journey } from "demogen";
+import type { Journey } from "demowalk";
 
 /**
  * Journey skeleton — see the package's CLAUDE.md for how journeys are

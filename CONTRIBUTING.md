@@ -1,13 +1,13 @@
-# Contributing to demogen
+# Contributing to demowalk
 
-Thanks for helping make demogen better. This guide covers local setup, the
+Thanks for helping make demowalk better. This guide covers local setup, the
 code layout, style conventions, and the PR workflow.
 
 ## Local setup
 
 ```bash
-git clone https://github.com/360solutions-dev/demogen.git
-cd demogen
+git clone https://github.com/360solutions-dev/demowalk.git
+cd demowalk
 npm install
 npm run typecheck
 ```
@@ -17,12 +17,12 @@ run it with `tsx`. `npm run typecheck` must pass before any PR.
 
 ### Developing against a real app
 
-The only way to truly test demogen is to run it inside a host repo:
+The only way to truly test demowalk is to run it inside a host repo:
 
 ```bash
-# in the host app's repo (sibling folder to your demogen clone):
-npm install --save-dev --install-links file:../demogen
-npx demogen-init
+# in the host app's repo (sibling folder to your demowalk clone):
+npm install --save-dev --install-links file:../demowalk
+npx demowalk-init
 npm run demo:video          # runs the bundled example journey
 ```
 
@@ -44,8 +44,8 @@ src/
 ├── stitch.ts     # ffmpeg: audio-pinned segments, seamless concat, encode
 ├── assets.ts     # small SVG asset helper
 └── index.ts      # package entry (re-exports)
-templates/        # what demogen-init copies into a host's demo/ folder
-scripts/init.mjs  # the demogen-init CLI (host setup + config auto-wiring)
+templates/        # what demowalk-init copies into a host's demo/ folder
+scripts/init.mjs  # the demowalk-init CLI (host setup + config auto-wiring)
 CLAUDE.md         # instruction set for AI-authored journeys
 ```
 
@@ -95,7 +95,7 @@ declined unless the README rules change first:
 
 Open a GitHub issue with:
 
-- the failing step's console output (demogen prints step id, URL, toast text
+- the failing step's console output (demowalk prints step id, URL, toast text
   and a debug-frame path on failure),
 - your `demo.config.ts` with secrets removed,
 - Node, Playwright and ffmpeg versions, and macOS version.
