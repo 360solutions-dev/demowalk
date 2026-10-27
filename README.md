@@ -76,12 +76,10 @@ journeys easier to author or redaction richer when present.
 ## Quick start
 
 ```bash
-# 0. ffmpeg (once per machine — check first: `ffmpeg -version`).
-#    The 2-minute static build beats compiling via brew:
-curl -L "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip" -o /tmp/ffmpeg.zip \
-  && unzip -o /tmp/ffmpeg.zip -d /tmp \
-  && sudo mv /tmp/ffmpeg /usr/local/bin/ffmpeg \
-  && sudo xattr -d com.apple.quarantine /usr/local/bin/ffmpeg 2>/dev/null; ffmpeg -version
+# 0. ffmpeg (once per machine — check first: `ffmpeg -version`):
+brew install ffmpeg
+#    (no Homebrew, or brew starts compiling from source? see
+#     "ffmpeg without Homebrew" at the end of this README)
 
 # 1. in your app's repo:
 npm install --save-dev tsx
@@ -194,6 +192,22 @@ The full frame-styling contract lives in
 
 In a host repo: `npm run demo:update` (set up by `demowalk-init`). Journeys
 and config stay untouched; only the engine updates.
+
+## ffmpeg without Homebrew
+
+If you don't use Homebrew — or `brew install ffmpeg` starts compiling from
+source (it does on machines with outdated Command Line Tools) — the static
+build installs in about two minutes:
+
+```bash
+curl -L "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip" -o /tmp/ffmpeg.zip \
+  && unzip -o /tmp/ffmpeg.zip -d /tmp \
+  && sudo mv /tmp/ffmpeg /usr/local/bin/ffmpeg \
+  && sudo xattr -d com.apple.quarantine /usr/local/bin/ffmpeg 2>/dev/null; ffmpeg -version
+```
+
+(The `xattr` line clears macOS's quarantine flag on the downloaded binary so
+it can run.)
 
 ## Contributing
 
