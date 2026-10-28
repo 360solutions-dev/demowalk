@@ -119,7 +119,9 @@ async function spotlightBox(
  * be the only line of defence again.
  *
  *   - every FILLED input/textarea (capture skips empty/checkbox/radio/color)
- *   - every table body cell (tbody td) — headers/structure stay readable
+ *   - every table body cell (tbody td) — headers/structure stay readable;
+ *     EMPTY cells and the single "No records" empty-state cell are skipped
+ *     (an empty table has nothing dynamic — blurring it looks broken)
  *   - list rows and stat values marked with data-testid …-row / …-value
  *   - uploaded/preview images (blob:/data:)
  */
@@ -217,7 +219,29 @@ async function captureStep(
           const kind = await el
             .evaluate((e) => {
               const tag = e.tagName;
-              if (tag !== "INPUT" && tag !== "TEXTAREA") return "element";
+              if (tag !== "INPUT" && tag !== "TEXTAREA") {
+                // An EMPTY element holds nothing dynamic — blurring it paints
+                // skeleton bars over blank space and makes an empty table look
+                // broken (review: "if table is empty, why you blur the table?").
+                const text = (e as HTMLElement).innerText?.trim() ?? "";
+                const hasMedia = !!e.querySelector("img,svg,canvas,video,picture");
+                if (!text && !hasMedia) return "skip";
+                // The classic empty-state cell — ONE cell in ONE tbody row
+                // ("No records found", usually colspan over every column) — is
+                // app UI text, never data (style rule 13). A real 1×1 data
+                // table is vanishingly rare; a journey redact can still cover
+                // one deliberately.
+                if (tag === "TD") {
+                  const row = e.closest("tr");
+                  const body = e.closest("tbody");
+                  if (
+                    row?.children.length === 1 &&
+                    body?.querySelectorAll("tr").length === 1
+                  )
+                    return "skip";
+                }
+                return "element";
+              }
               const input = e as HTMLInputElement;
               if (input.type === "checkbox" || input.type === "radio" || input.type === "color")
                 return "skip";
