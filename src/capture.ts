@@ -389,7 +389,25 @@ export async function capture(
     // app's bootstrap 401-signs-out). The fixture context is the one path
     // that demonstrably stays signed in; crispness is the overlay's job —
     // it upscales from the frame's MEASURED size, never an assumed one.
-    const context = await config.createAuthContext(browser);
+    let context;
+    try {
+      context = await config.createAuthContext(browser);
+    } catch (err) {
+      // The host fixture's raw error (usually a Playwright waitForURL
+      // timeout stuck on /login) explains nothing — say what it MEANS.
+      const raw = err instanceof Error ? err.message.split("\n")[0] : String(err);
+      throw new Error(
+        `[demo] SIGN-IN FAILED — the auth fixture never reached the app.\n` +
+          `        Almost always one of these, in order of likelihood:\n` +
+          `          1. The test user's credentials in your e2e env file are\n` +
+          `             empty or wrong — try them by hand at ${baseUrl}/login\n` +
+          `          2. The backend API isn't running (the login page loads\n` +
+          `             without it, but signing in can't succeed)\n` +
+          `          3. The account isn't valid for THIS portal (e.g. a staff\n` +
+          `             login on a patient portal)\n` +
+          `        Underlying error: ${raw}`
+      );
+    }
     const page = await context.newPage();
     await page.setViewportSize(VIEWPORT);
 
