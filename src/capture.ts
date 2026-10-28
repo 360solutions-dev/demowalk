@@ -150,8 +150,13 @@ function universalRedactions(page: Page): Locator[] {
  * elements plus the text nodes of their click target. Text-only anchors with
  * no label (e.g. a logo link) are left alone — a logo is branding, not data.
  */
-async function chromeRedactionBoxes(page: Page): Promise<Box[]> {
+export async function chromeRedactionBoxes(page: Page): Promise<Box[]> {
   const boxes = await page.evaluate(() => {
+    // tsx/esbuild decorates inner functions with a __name helper that exists
+    // only in the Node module scope — define it here or the serialized
+    // function dies on its first line INSIDE THE BROWSER ("__name is not
+    // defined"), taking every chrome redaction with it.
+    (globalThis as { __name?: (fn: unknown) => unknown }).__name ??= (fn) => fn;
     const out: { x: number; y: number; width: number; height: number }[] = [];
     const push = (r: DOMRect) => {
       if (r.width > 0 && r.height > 0)
@@ -309,7 +314,9 @@ async function captureStep(
     ...(step.redact?.(ctx) ?? []),
   ];
   if (!step.noUniversalRedact) {
-    redactions.push(...(await chromeRedactionBoxes(page).catch(() => [])));
+    // No silent catch — a failed measure means missing redactions, and a
+    // video with unredacted personal data must never render quietly.
+    redactions.push(...(await chromeRedactionBoxes(page)));
   }
   {
     for (const locator of redactLocators) {
