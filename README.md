@@ -1,5 +1,11 @@
 # demowalk
 
+[![npm version](https://img.shields.io/npm/v/demowalk?logo=npm)](https://www.npmjs.com/package/demowalk)
+[![license](https://img.shields.io/npm/l/demowalk)](./LICENSE)
+[![node](https://img.shields.io/node/v/demowalk)](https://www.npmjs.com/package/demowalk)
+
+> 📦 **On npm:** [npmjs.com/package/demowalk](https://www.npmjs.com/package/demowalk) — `npm install --save-dev demowalk`
+
 **Self-regenerating product demo videos.** One command rebuilds a narrated
 walkthrough **from your live app**: Playwright drives the real UI, every
 frame is styled in your own branding (spotlight rings, captions, and
