@@ -46,6 +46,11 @@ everything else below is YOUR job, not theirs.
 5. **Selectors:** accessible (labels, placeholders, roles) — never
    page-wide text or nth() guesses (rule 6); scope through section titles
    and siblings. Measurement flakiness is already engine-handled.
+   **Scrolling:** spotlight steps center themselves (engine). A step that
+   scrolls in its own `do` must CENTER its subject too —
+   `locator.evaluate((e) => e.scrollIntoView({ block: "center", behavior: "instant" }))`
+   — never `scrollIntoViewIfNeeded`, which stops at "barely visible" and
+   leaves the subject cut off at the bottom edge under the caption.
 6. **Emails/data:** all typed values come from the journey's `data` object —
    fictional names, plus-tagged owned mailboxes if an address could ever
    receive mail (rule 19), fictional addresses/phones (555-01xx).

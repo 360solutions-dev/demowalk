@@ -85,9 +85,16 @@ async function spotlightBox(
   for (const locator of locators) {
     for (const el of await locator.all()) {
       if (!scrolled) {
-        // Guarded like the measurements: a re-render mid-scroll (tables
-        // refreshing) must not fail the run (hit live on Partner Listing).
-        await el.scrollIntoViewIfNeeded({ timeout: 3_000 }).catch(() => {});
+        // CENTER the subject, don't just make it visible —
+        // scrollIntoViewIfNeeded stops at "minimally visible", which parks a
+        // below-the-fold target half-cut at the bottom edge, under the
+        // caption bar, with the PREVIOUS section filling the frame (review:
+        // the Documents step showed Billing). block:"center" presents the
+        // section the narration is actually about. Guarded like the
+        // measurements: a re-render mid-scroll must not fail the run.
+        await el
+          .evaluate((e) => e.scrollIntoView({ block: "center", behavior: "instant" }))
+          .catch(() => {});
         await page.waitForTimeout(250); // let the scroll finish before measuring
         scrolled = true;
       }
