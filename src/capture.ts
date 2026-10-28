@@ -185,6 +185,51 @@ async function chromeRedactionBoxes(page: Page): Promise<Box[]> {
         push(range.getBoundingClientRect());
       }
     });
+    // 3. Personal/dynamic TEXT, generically (review: "blur every dynamic
+    //    data… don't add static conditions"): any text node containing a
+    //    digit in the CONTENT area is the user's data — counts, dates,
+    //    amounts, record numbers. Digits inside structural chrome are UI
+    //    (pagination's "Rows per page: 10", stepper numerals, button labels)
+    //    and stay readable. A big standalone numeral (a stat-card value)
+    //    additionally pulls in its card's trailing caption, which summarises
+    //    the same data without containing a digit ("All verified").
+    const CHROME =
+      'thead, nav, aside, button, a, label, select, [role="navigation"], ' +
+      '[role="tablist"], [class*="pagination" i], [class*="stepper" i]';
+    const seen = new Set<Node>();
+    const blurTextNode = (n: Node) => {
+      if (seen.has(n)) return;
+      seen.add(n);
+      const range = document.createRange();
+      range.selectNodeContents(n);
+      push(range.getBoundingClientRect());
+    };
+    const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const statValues: Element[] = [];
+    for (let n = textWalker.nextNode(); n; n = textWalker.nextNode()) {
+      const text = n.textContent?.trim();
+      if (!text || !/\d/.test(text)) continue;
+      const el = n.parentElement;
+      if (!el || el.closest(CHROME)) continue;
+      blurTextNode(n);
+      const fontSize = parseFloat(getComputedStyle(el).fontSize) || 0;
+      if (fontSize >= 20 && !/[a-zA-Z]/.test(text)) statValues.push(el);
+    }
+    for (const value of statValues) {
+      const card = value.parentElement;
+      if (!card) continue;
+      const w = document.createTreeWalker(card, NodeFilter.SHOW_TEXT);
+      let lastText: Node | null = null;
+      for (let n = w.nextNode(); n; n = w.nextNode()) {
+        if (n.textContent?.trim()) lastText = n;
+      }
+      if (
+        lastText &&
+        lastText.parentElement !== value &&
+        !lastText.parentElement?.closest(CHROME)
+      )
+        blurTextNode(lastText);
+    }
     return out;
   });
   return boxes.map((b) => ({
@@ -309,6 +354,12 @@ async function captureStep(
               const input = e as HTMLInputElement;
               if (input.type === "checkbox" || input.type === "radio" || input.type === "color")
                 return "skip";
+              // Invisible helper inputs (MUI selects keep a 0-opacity native
+              // input holding the value — e.g. pagination's "rows per page")
+              // paint a stray skeleton bar over UI if blurred. Not data.
+              if (input.type === "hidden") return "skip";
+              const cs = getComputedStyle(input);
+              if (cs.opacity === "0" || cs.visibility === "hidden") return "skip";
               return input.value.trim() === "" ? "skip" : "field";
             })
             .catch(() => "element");
