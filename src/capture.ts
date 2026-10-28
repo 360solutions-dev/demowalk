@@ -4,7 +4,7 @@ import * as path from "path";
 import { chromium, type CDPSession, type Locator, type Page } from "@playwright/test";
 import sharp from "sharp";
 
-import type { CaptureManifest, DemoConfig, FrameMeta, Journey, StepContext } from "./types";
+import type { Box, CaptureManifest, DemoConfig, FrameMeta, Journey, StepContext } from "./types";
 
 /**
  * Walks a journey on the LIVE app and writes one screenshot + spotlight/
@@ -135,6 +135,66 @@ function universalRedactions(page: Page): Locator[] {
   ];
 }
 
+/**
+ * ⚠️ UNIVERSAL app-chrome redactions, measured in the page (also on every
+ * frame; review 28 Oct):
+ *
+ *   - NAV items that are not the CURRENT screen blur (icon+label), URL-driven
+ *     (style rule 7) — the current screen's own nav item stays readable. A
+ *     navigation step `protect`s its subject, which re-pastes it sharp.
+ *   - IDENTITY chrome blurs: avatar bubbles (initials/photo) and the user
+ *     name/email text beside them — in the header dropdown, a sidebar user
+ *     card, anywhere ("in header if you see any dynamic data, blur it").
+ *
+ * Kept generic: anchors inside nav/aside/[role=navigation]; `avatar`-classed
+ * elements plus the text nodes of their click target. Text-only anchors with
+ * no label (e.g. a logo link) are left alone — a logo is branding, not data.
+ */
+async function chromeRedactionBoxes(page: Page): Promise<Box[]> {
+  const boxes = await page.evaluate(() => {
+    const out: { x: number; y: number; width: number; height: number }[] = [];
+    const push = (r: DOMRect) => {
+      if (r.width > 0 && r.height > 0)
+        out.push({ x: r.x, y: r.y, width: r.width, height: r.height });
+    };
+    // 1. Non-current nav links (rule 7) — URL decides what stays readable.
+    const path = location.pathname;
+    document
+      .querySelectorAll('nav a[href], aside a[href], [role="navigation"] a[href]')
+      .forEach((a) => {
+        const href = a.getAttribute("href") ?? "";
+        if (!href.startsWith("/")) return;
+        if (!(a as HTMLElement).innerText?.trim()) return; // logo/icon-only link
+        const target = href.split(/[?#]/)[0];
+        const current =
+          target === "/" ? path === "/" : path === target || path.startsWith(target + "/");
+        if (!current) push(a.getBoundingClientRect());
+      });
+    // 2. Identity chrome: the avatar bubble + the name/email text beside it.
+    document.querySelectorAll('[class*="avatar" i]').forEach((av) => {
+      push(av.getBoundingClientRect());
+      const holder = av.closest('button,a,[role="button"],li') ?? av.parentElement;
+      if (!holder) return;
+      const walker = document.createTreeWalker(holder, NodeFilter.SHOW_TEXT);
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        const text = n.textContent?.trim();
+        if (!text) continue;
+        if (av.contains(n.parentElement)) continue; // initials — bubble covers them
+        const range = document.createRange();
+        range.selectNodeContents(n);
+        push(range.getBoundingClientRect());
+      }
+    });
+    return out;
+  });
+  return boxes.map((b) => ({
+    x: Math.round(b.x * SCALE),
+    y: Math.round(b.y * SCALE),
+    width: Math.round(b.width * SCALE),
+    height: Math.round(b.height * SCALE),
+  }));
+}
+
 /** Runs one step on its page and appends its frame — shared by both phases. */
 async function captureStep(
   ctx: StepContext,
@@ -198,10 +258,14 @@ async function captureStep(
   // frame is shot as-is, so only visible pixels need blurring).
   const redactions: NonNullable<FrameMeta["redactions"]> = [];
   const redactLocators = [
-    ...universalRedactions(page),
+    // noUniversalRedact (rare, deliberate) keeps only the step's own patterns.
+    ...(step.noUniversalRedact ? [] : universalRedactions(page)),
     ...(journeyRedact?.(ctx) ?? []),
     ...(step.redact?.(ctx) ?? []),
   ];
+  if (!step.noUniversalRedact) {
+    redactions.push(...(await chromeRedactionBoxes(page).catch(() => [])));
+  }
   {
     for (const locator of redactLocators) {
       for (const el of await locator.all()) {
