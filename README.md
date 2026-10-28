@@ -186,7 +186,10 @@ regulated/health data):
 - **Journeys create nothing and send nothing** — the final create/submit is
   ringed and narrated, never clicked.
 - **All dynamic data is redacted by the engine** on every frame — no step
-  opts in, no frame can be forgotten; raw captures never persist.
+  opts in, no frame can be forgotten; raw captures never persist. App chrome
+  included: nav items other than the current screen's, and the signed-in
+  user's avatar and name. Empty tables stay untouched — nothing dynamic,
+  nothing blurred.
 - Output folders are gitignored; distribute videos only through your own
   storage behind your product's auth.
 
