@@ -21,6 +21,9 @@ import type { Box, CaptureManifest, DemoConfig, FrameMeta, Journey, StepContext 
  */
 
 let VIEWPORT = { width: 1600, height: 900 };
+// Whether to blur the signed-in user's avatar + name (config.blurIdentity).
+// Off for a partner's own-brand video, where the account IS the brand.
+let BLUR_IDENTITY = true;
 /**
  * Frames are shot at 2× (retina) through the RAW CDP screenshot call — both
  * --force-device-scale-factor and a CDP metrics override are ignored by
@@ -159,9 +162,9 @@ function universalRedactions(page: Page): Locator[] {
  */
 export async function chromeRedactionBoxes(
   page: Page,
-  opts: { dynamicText: boolean } = { dynamicText: true }
+  opts: { dynamicText: boolean; identity?: boolean } = { dynamicText: true }
 ): Promise<Box[]> {
-  const boxes = await page.evaluate((includeDynamicText) => {
+  const boxes = await page.evaluate(([includeDynamicText, includeIdentity]) => {
     // tsx/esbuild decorates inner functions with a __name helper that exists
     // only in the Node module scope — define it here or the serialized
     // function dies on its first line INSIDE THE BROWSER ("__name is not
@@ -186,6 +189,9 @@ export async function chromeRedactionBoxes(
         if (!current) push(a.getBoundingClientRect());
       });
     // 2. Identity chrome: the avatar bubble + the name/email text beside it.
+    //    Skipped when includeIdentity is false — e.g. a partner's OWN portal
+    //    video, where the signed-in account IS the brand and must stay shown.
+    if (includeIdentity)
     document.querySelectorAll('[class*="avatar" i]').forEach((av) => {
       push(av.getBoundingClientRect());
       const holder = av.closest('button,a,[role="button"],li') ?? av.parentElement;
@@ -247,7 +253,7 @@ export async function chromeRedactionBoxes(
         blurTextNode(lastText);
     }
     return out;
-  }, opts.dynamicText);
+  }, [opts.dynamicText, opts.identity !== false] as const);
   return boxes.map((b) => ({
     x: Math.round(b.x * SCALE),
     y: Math.round(b.y * SCALE),
@@ -331,7 +337,10 @@ async function captureStep(
   // posture and opts out with it. No silent catch — a failed measure means
   // missing redactions, and an unredacted frame must never render quietly.
   redactions.push(
-    ...(await chromeRedactionBoxes(page, { dynamicText: !step.noUniversalRedact }))
+    ...(await chromeRedactionBoxes(page, {
+      dynamicText: !step.noUniversalRedact,
+      identity: BLUR_IDENTITY,
+    }))
   );
   {
     for (const locator of redactLocators) {
@@ -452,6 +461,7 @@ export async function capture(
   const baseUrl = config.baseUrl;
   const data = journey.data;
   if (config.viewport) VIEWPORT = config.viewport;
+  if (config.blurIdentity === false) BLUR_IDENTITY = false;
   const framesDir = path.join(outDir, "frames");
   fs.mkdirSync(framesDir, { recursive: true });
 

@@ -186,6 +186,12 @@ export interface DemoConfig {
   /** Allow running against a non-localhost baseUrl. Default false. */
   allowRemote?: boolean;
   /**
+   * Blur the signed-in user's avatar + name in app chrome. Default true.
+   * Set false for a video on the user's OWN branded portal, where the
+   * signed-in account IS the brand and should stay visible.
+   */
+  blurIdentity?: boolean;
+  /**
    * Extra Chromium launch flags for the capture browser. The main use is
    * `--disable-web-security` so a locally-served app can call a remote API
    * (e.g. a UAT backend) whose CORS allowlist doesn't include localhost —
