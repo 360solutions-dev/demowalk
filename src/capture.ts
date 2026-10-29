@@ -408,6 +408,27 @@ async function captureStep(
     }
   }
 
+  // keepVisible: the explicit "re-paste these ORIGINAL pixels sharp, on top of
+  // the blur" opt-out (the current screen's nav item, the one value a step
+  // teaches). Measured here like redactions — without this, frame.keepVisible
+  // was always empty and the overlay's re-paste never fired, so a kept element
+  // sitting under a blurred region (e.g. the current nav item inside the
+  // whole-sidebar blur) came out blurred anyway.
+  const keepVisible: Box[] = [];
+  for (const locator of step.keepVisible?.(ctx) ?? []) {
+    for (const el of await locator.all()) {
+      const box = await el.boundingBox({ timeout: 3_000 }).catch(() => null);
+      if (box && box.width > 0 && box.height > 0) {
+        keepVisible.push({
+          x: Math.round(box.x * SCALE),
+          y: Math.round(box.y * SCALE),
+          width: Math.round(box.width * SCALE),
+          height: Math.round(box.height * SCALE),
+        });
+      }
+    }
+  }
+
   const image = `${step.id}.png`;
   fs.writeFileSync(path.join(framesDir, image), await shoot(cdp));
   frames.push({
@@ -418,6 +439,7 @@ async function captureStep(
     protectOnly: step.protectOnly,
     protect: step.protect,
     redactions: redactions.length ? redactions : undefined,
+    keepVisible: keepVisible.length ? keepVisible : undefined,
     image,
   });
 }
