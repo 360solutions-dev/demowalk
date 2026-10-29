@@ -459,7 +459,9 @@ export async function capture(
   const preAuthSteps = journey.steps.filter((s) => s.preAuth);
   const mainSteps = journey.steps.filter((s) => !s.preAuth);
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    args: config.launchArgs,
+  });
   try {
     // Phase 1 — the signed-OUT login story, in its own throwaway context.
     // These steps navigate themselves and never submit anything.

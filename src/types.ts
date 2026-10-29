@@ -185,6 +185,13 @@ export interface DemoConfig {
   viewport?: { width: number; height: number };
   /** Allow running against a non-localhost baseUrl. Default false. */
   allowRemote?: boolean;
+  /**
+   * Extra Chromium launch flags for the capture browser. The main use is
+   * `--disable-web-security` so a locally-served app can call a remote API
+   * (e.g. a UAT backend) whose CORS allowlist doesn't include localhost —
+   * the capture browser is a throwaway that only ever loads the demo app.
+   */
+  launchArgs?: string[];
   /** Where journeys and output live, relative to the host repo root. Default "demo". */
   demoDir?: string;
 }
