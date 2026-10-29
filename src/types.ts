@@ -71,10 +71,12 @@ export interface JourneyStep<D = unknown> {
    */
   keepVisible?: (ctx: StepContext<D>) => Locator[];
   /**
-   * Disable the engine's universal redactions for this one frame — for a
-   * screen the author explicitly wants shown clean. Journey/step redactions
-   * still apply. Use sparingly; the default posture is "all dynamic data
-   * blurs".
+   * Disable the engine's universal DATA redactions for this one frame — for a
+   * screen the author explicitly wants shown clean (e.g. a client-facing demo
+   * typing that client's own values). Journey/step redactions still apply,
+   * and so does the app-chrome blur: non-current nav items and the signed-in
+   * user's avatar/name stay blurred on every frame, clear ones included.
+   * Use sparingly; the default posture is "all dynamic data blurs".
    */
   noUniversalRedact?: boolean;
   /** Extra settle time before the screenshot, beyond network-idle (ms). */

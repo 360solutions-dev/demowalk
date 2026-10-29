@@ -157,8 +157,11 @@ function universalRedactions(page: Page): Locator[] {
  * elements plus the text nodes of their click target. Text-only anchors with
  * no label (e.g. a logo link) are left alone — a logo is branding, not data.
  */
-export async function chromeRedactionBoxes(page: Page): Promise<Box[]> {
-  const boxes = await page.evaluate(() => {
+export async function chromeRedactionBoxes(
+  page: Page,
+  opts: { dynamicText: boolean } = { dynamicText: true }
+): Promise<Box[]> {
+  const boxes = await page.evaluate((includeDynamicText) => {
     // tsx/esbuild decorates inner functions with a __name helper that exists
     // only in the Node module scope — define it here or the serialized
     // function dies on its first line INSIDE THE BROWSER ("__name is not
@@ -197,6 +200,7 @@ export async function chromeRedactionBoxes(page: Page): Promise<Box[]> {
         push(range.getBoundingClientRect());
       }
     });
+    if (!includeDynamicText) return out;
     // 3. Personal/dynamic TEXT, generically (review: "blur every dynamic
     //    data… don't add static conditions"): any text node containing a
     //    digit in the CONTENT area is the user's data — counts, dates,
@@ -243,7 +247,7 @@ export async function chromeRedactionBoxes(page: Page): Promise<Box[]> {
         blurTextNode(lastText);
     }
     return out;
-  });
+  }, opts.dynamicText);
   return boxes.map((b) => ({
     x: Math.round(b.x * SCALE),
     y: Math.round(b.y * SCALE),
@@ -320,11 +324,15 @@ async function captureStep(
     ...(journeyRedact?.(ctx) ?? []),
     ...(step.redact?.(ctx) ?? []),
   ];
-  if (!step.noUniversalRedact) {
-    // No silent catch — a failed measure means missing redactions, and a
-    // video with unredacted personal data must never render quietly.
-    redactions.push(...(await chromeRedactionBoxes(page)));
-  }
+  // Nav + identity chrome blur applies to EVERY frame — clear
+  // (noUniversalRedact) frames included: a sales video that shows its typed
+  // values still never shows the other nav modules or the operator's name.
+  // Only the dynamic-text (digit/caption) pass belongs to the universal
+  // posture and opts out with it. No silent catch — a failed measure means
+  // missing redactions, and an unredacted frame must never render quietly.
+  redactions.push(
+    ...(await chromeRedactionBoxes(page, { dynamicText: !step.noUniversalRedact }))
+  );
   {
     for (const locator of redactLocators) {
       for (const el of await locator.all()) {
